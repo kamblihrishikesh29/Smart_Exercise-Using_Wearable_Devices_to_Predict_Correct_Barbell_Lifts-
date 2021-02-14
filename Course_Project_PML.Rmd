@@ -1,0 +1,114 @@
+---
+title: "Course_Project_PML"
+author: "Hrishikesh Kambli"
+date: "2/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# I. Overview
+This document is the final report of the Peer Assessment project from Coursera's course Practical Machine Learning.
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. The data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants was recorded as they were asked to perform barbell lifts correctly and incorrectly in 5 different ways.
+
+The main goal of the project is to predict the manner in which 6 participants performed these exercise as described below. This is the "classe" variable in the training set. The machine learning algorithm described here is applied to the 20 test cases available in the test data.
+
+# II. Data Loading and Exploratory Analysis
+
+### a) Dataset Overview
+The training data for this project are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+A short description of the datasets content from the authors website:
+
+Six young health participants were asked to perform one set of 10 repetitions of the Unilateral Dumbbell Biceps Curl in five different fashions: exactly according to the specification (Class A), throwing the elbows to the front (Class B), lifting the dumbbell only halfway (Class C), lowering the dumbbell only halfway (Class D) and throwing the hips to the front (Class E).
+
+Class A corresponds to the specified execution of the exercise, while the other 4 classes correspond to common mistakes. Participants were supervised by an experienced weight lifter to make sure the execution complied to the manner they were supposed to simulate. The exercises were performed by six male participants aged between 20-28 years, with little weight lifting experience. We made sure that all participants could easily simulate the mistakes in a safe and controlled manner by using a relatively light dumbbell (1.25kg)."
+
+### b) Loading required libraries
+```{r, message=FALSE, warning=FALSE}
+library(caret)
+library(rattle)
+library(randomForest)
+library(gbm)
+library(rpart)
+library(rpart.plot)
+set.seed(12345)
+```
+
+
+### c) Data Loading and Cleaning
+The next step is loading the dataset from the URL provided above.
+
+```{r}
+train <- read.csv("C:/Users/kambl/Documents/R/Practical Machine Learning/pml-training.csv")
+test <- read.csv("C:/Users/kambl/Documents/R/Practical Machine Learning/pml-testing.csv")
+dim(train)
+dim(test)
+```
+
+The training dataset is then partinioned in 2 to create a Training set (70% of the data) for the modeling process and a Test set (with the remaining 30%) for the validations. The testing dataset is not changed.
+```{r}
+inTrain  <- createDataPartition(train$classe, p=0.7, list=FALSE)
+TrainSet <- train[inTrain, ]
+ValidSet  <- train[-inTrain, ]
+dim(TrainSet)
+```
+
+```{r}
+dim(ValidSet)
+```
+
+Both created datasets have 160 variables. Those variables have plenty of NA, that can be removed with the cleaning procedures below. 
+
+Removing variables with Nearly Zero Variance
+```{r}
+NZV <- nearZeroVar(TrainSet)
+TrainSet <- TrainSet[, -NZV]
+ValidSet  <- ValidSet[, -NZV]
+dim(TrainSet)
+```
+
+```{r}
+dim(ValidSet)
+```
+
+
+Removing the variables that contains missing values.
+```{r}
+TrainSet<- TrainSet[, colSums(is.na(TrainSet)) == 0]
+ValidSet <- ValidSet[, colSums(is.na(ValidSet)) == 0]
+dim(TrainSet)
+```
+
+```{r}
+dim(ValidSet)
+```
+
+Removing identification only variables that don't make intuitive sense for prediction
+```{r}
+TrainSet <- TrainSet[, -(1:5)]
+ValidSet  <- ValidSet[, -(1:5)]
+dim(TrainSet)
+```
+
+```{r}
+dim(ValidSet)
+```
+
+With the cleaning process above, the number of variables for the analysis has been reduced to 54 only.
+
+
+# III. Prediction Model Building
+Three methods will be applied to model the regressions (in the Train dataset).
+The methods are: Random Forests, Decision Tree and Generalized Boosted Model, as described below.
+
+
