@@ -425,7 +425,7 @@ dim(TrainSet)</code></pre>
 <pre class="r"><code>dim(ValidSet)</code></pre>
 <pre><code>## [1] 5885  160</code></pre>
 <p>Both created datasets have 160 variables. Those variables have plenty of NA, that can be removed with the cleaning procedures below.</p>
-<p>Removing variables with Nearly Zero Variance</p>
+<p>Removing variables with Nearly Zero Variance.</p>
 <pre class="r"><code>NZV &lt;- nearZeroVar(TrainSet)
 TrainSet &lt;- TrainSet[, -NZV]
 ValidSet  &lt;- ValidSet[, -NZV]

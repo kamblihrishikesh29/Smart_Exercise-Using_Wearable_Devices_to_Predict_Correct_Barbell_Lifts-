@@ -69,7 +69,7 @@ dim(ValidSet)
 
 Both created datasets have 160 variables. Those variables have plenty of NA, that can be removed with the cleaning procedures below. 
 
-Removing variables with Nearly Zero Variance
+Removing variables with Nearly Zero Variance.
 ```{r}
 NZV <- nearZeroVar(TrainSet)
 TrainSet <- TrainSet[, -NZV]
