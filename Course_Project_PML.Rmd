@@ -111,4 +111,77 @@ With the cleaning process above, the number of variables for the analysis has be
 Three methods will be applied to model the regressions (in the Train dataset).
 The methods are: Random Forests, Decision Tree and Generalized Boosted Model, as described below.
 
+### a) Method: Random Forest
+
+```{r, cache=TRUE}
+# model fit
+set.seed(12345)
+controlRF <- trainControl(method="cv", number=3, verboseIter=FALSE)
+modFitRF <- train(classe ~ ., data=TrainSet, method="rf",
+                  trControl=controlRF)
+modFitRF$finalModel
+```
+
+
+```{r}
+# prediction on Validation dataset
+predictRF <- predict(modFitRF, newdata=ValidSet)
+confMatRF <- confusionMatrix(predictRF, as.factor(ValidSet$classe))
+confMatRF
+```
+
+The accuracy is 99.9%, thus my predicted accuracy for the out-of-sample error is 0.1%.
+
+### b) Method: Decision Trees
+
+```{r}
+# model fit
+set.seed(12345)
+modFitDT <- rpart(classe ~ ., data=TrainSet, method="class")
+fancyRpartPlot(modFitDT)
+```
+```{r}
+prp(modFitDT)
+```
+
+
+```{r}
+# prediction on Validation dataset
+predictDT <- predict(modFitDT, newdata= ValidSet, type="class")
+confMatDT <- confusionMatrix(predictDT, as.factor(ValidSet$classe))
+confMatDT
+```
+The accuracy is 73.42%.
+
+### c) Method: Generalized Boosted Model
+```{r, cache = TRUE}
+# model fit
+set.seed(12345)
+controlGBM <- trainControl(method = "repeatedcv", number = 5, repeats = 1)
+modFitGBM  <- train(classe ~ ., data=TrainSet, method = "gbm",
+                    trControl = controlGBM, verbose = FALSE)
+modFitGBM$finalModel
+
+```
+
+
+```{r}
+# prediction on Validation dataset
+predictGBM <- predict(modFitGBM, newdata=ValidSet)
+confMatGBM <- confusionMatrix(predictGBM, as.factor(ValidSet$classe))
+confMatGBM
+```
+
+# IV. Applying the Selected Model to the Test Data
+
+The accuracy of the 3 regression modeling methods above are:
+  Random Forest : 0.999
+Decision Tree : 0.7342
+GBM : 0.987
+In that case, the Random Forest model will be applied to predict the 20 quiz results (testing dataset) as shown below.
+
+```{r}
+predictTEST <- predict(modFitRF, newdata=test)
+predictTEST
+```
 
